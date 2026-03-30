@@ -1,0 +1,32 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lettura</title><link rel="stylesheet" href="style.css"></head><body><div class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><div class="brand-badge">📘</div><div><div>Imparare la lingua italiana</div><div class="brand-sub" dir="rtl">موقع تعليمي لتعلّم اللغة الإيطالية</div></div></a><div class="nav-links"><a href="index.html" class="">Home</a><a href="grammar.html" class="">Grammatica</a><a href="listening.html" class="">Ascolto</a><a href="reading.html" class="active">Lettura</a><a href="writing.html" class="">Scrittura</a><a href="quizzes.html" class="">Verifiche</a></div></div></div><section class="page-head"><div class="container"><h1>Lettura</h1><p>Testi graduati con domande di comprensione</p><p dir="rtl">نصوص متدرجة مع أسئلة للفهم</p></div></section><section class="section"><div class="container"><div id="app"></div></div></section>
+<script>
+const DATA = [{"id": 1, "titleIt": "La mia giornata", "titleAr": "يومي", "level": "A1", "text": "Mi chiamo Giulia e ho ventidue anni. Abito a Roma con la mia famiglia. Ogni mattina mi sveglio alle sette. Poi vado all'università in autobus. Il pomeriggio studio in biblioteca. Vado a dormire alle undici.", "textAr": "اسمي جوليا وعمري اثنان وعشرون عاماً. أسكن في روما مع عائلتي. كل صباح أستيقظ في السابعة. ثم أذهب إلى الجامعة بالحافلة. بعد الظهر أدرس في المكتبة. أذهب إلى النوم في الحادية عشرة.", "questions": [{"question": "Quanti anni ha Giulia?", "questionAr": "كم عمر جوليا؟", "options": ["20 anni", "21 anni", "22 anni", "23 anni"], "correct": 2}, {"question": "Dove abita Giulia?", "questionAr": "أين تسكن جوليا؟", "options": ["A Milano", "A Roma", "A Firenze", "A Napoli"], "correct": 1}, {"question": "Come va all'università?", "questionAr": "كيف تذهب إلى الجامعة؟", "options": ["In treno", "A piedi", "In autobus", "In macchina"], "correct": 2}]}];const root=document.getElementById('app'); let selected=null; let answers={}; let submitted={}; let texts={}; let showText={}; let quizStarted=false; let quizSubmitted=false; let quizTimeLeft=0; let timer=null;
+function listView(){
+  root.innerHTML = '<div class="list">' + DATA.map((item,i)=>`
+    <button class="item-btn" onclick="openItem(${i})">
+      <div class="item-row"><div class="item-main"><div class="iconbox icon-green">📖</div><div><div><span class="level ${item.level.toLowerCase()}">${item.level}</span></div><div style="font-weight:800;font-size:18px;margin-top:8px">${item.titleIt}</div><div class="small-ar" dir="rtl">${item.titleAr}</div></div></div></div>
+    </button>`).join('') + '</div>';
+}
+function openItem(i){selected=i; render();}
+function back(){selected=null; render();}
+function optionClass(done,sel,j,correct){
+  let cls='option';
+  if(done){ if(j===correct) cls+=' correct'; else if(sel===j && j!==correct) cls+=' wrong'; }
+  else if(sel===j) cls+=' selected';
+  return cls;
+}
+function wordCount(t){ return t.trim() ? t.trim().split(/\s+/).length : 0; }
+function fmt(sec){ const m=Math.floor(sec/60); const s=sec%60; return m+':'+String(s).padStart(2,'0'); }
+function render(){
+ if(selected===null){ listView(); return; }
+ const item = DATA[selected];
+
+ const score = item.questions.filter((q,i)=>answers[item.id+'-'+i]===q.correct).length;
+ const allAnswered = item.questions.every((q,i)=>answers[item.id+'-'+i]!==undefined);
+ root.innerHTML = `<a href="#" class="back" onclick="back();return false;">← Torna alla lista</a><div class="panel"><span class="level ${item.level.toLowerCase()}">${item.level}</span><h2 style="margin:10px 0 6px">${item.titleIt}</h2><div class="small-ar" dir="rtl">${item.titleAr}</div><div class="text-block">${item.text}</div><div class="text-block ar" dir="rtl">${item.textAr}</div></div>${item.questions.map((q,i)=>{ const key=item.id+'-'+i; const sel=answers[key]; const done=submitted[item.id]; return `<div class="question"><p><strong>${i+1}. ${q.question}</strong></p><p class="small-ar" dir="rtl">${q.questionAr}</p><div class="options">${q.options.map((opt,j)=>`<button class="${optionClass(done,sel,j,q.correct)}" onclick="if(!submitted[${item.id}]){{answers['${item.id}-'+${i}]=${j}; render();}}">${opt}</button>`).join('')}</div>${done?`<div style="margin-top:10px;font-size:14px">${sel===q.correct?'Corretto — صحيح':'Sbagliato — خطأ. Risposta corretta: '+q.options[q.correct]}</div>`:''}</div>`; }).join('')}<div class="actions">${submitted[item.id]?`<div class="scorebox">★ ${score} / ${item.questions.length} <span dir="rtl">— النتيجة</span></div>`:`<button class="submit-btn green" ${!allAnswered?'disabled':''} onclick="submitted[${item.id}]=true;render();">Controlla le risposte</button>`}</div>`;
+}
+function startQuiz(){quizStarted=true; quizSubmitted=false; quizTimeLeft=DATA[selected].timeLimit; if(timer) clearInterval(timer); timer=setInterval(()=>{quizTimeLeft--; if(quizTimeLeft<=0){submitQuiz();} render();},1000); render();}
+function submitQuiz(){quizSubmitted=true; if(timer) clearInterval(timer); render();}
+function resetQuiz(){selected=null; quizStarted=false; quizSubmitted=false; quizTimeLeft=0; answers={}; if(timer) clearInterval(timer); render();}
+render();
+</script><div class="footer"><div class="container"><p><strong>Imparare la lingua italiana</strong></p><p>Piattaforma didattica per studenti dei livelli A1 e A2.</p><p dir="rtl">منصة تعليمية موجّهة للمتعلمين في مستويي A1 و A2.</p></div></div></body></html>

@@ -1,0 +1,35 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Verifiche</title><link rel="stylesheet" href="style.css"></head><body><div class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><div class="brand-badge">📘</div><div><div>Imparare la lingua italiana</div><div class="brand-sub" dir="rtl">موقع تعليمي لتعلّم اللغة الإيطالية</div></div></a><div class="nav-links"><a href="index.html" class="">Home</a><a href="grammar.html" class="">Grammatica</a><a href="listening.html" class="">Ascolto</a><a href="reading.html" class="">Lettura</a><a href="writing.html" class="">Scrittura</a><a href="quizzes.html" class="active">Verifiche</a></div></div></div><section class="page-head"><div class="container"><h1>Verifiche</h1><p>Quiz con timer, punteggio e correzione</p><p dir="rtl">اختبارات مع وقت محدد ونتيجة وتصحيح</p></div></section><section class="section"><div class="container"><div id="app"></div></div></section>
+<script>
+const DATA = [{"id": 1, "titleIt": "Vocabolario A1 — Parole di base", "titleAr": "مفردات A1 — كلمات أساسية", "level": "A1", "timeLimit": 120, "questions": [{"question": "Come si dice 'كتاب' in italiano?", "questionAr": "ما ترجمة 'كتاب' بالإيطالية؟", "options": ["Penna", "Libro", "Quaderno", "Tavolo"], "correct": 1}, {"question": "Cosa significa 'acqua'?", "questionAr": "ما معنى 'acqua'؟", "options": ["طعام", "ماء", "هواء", "نار"], "correct": 1}, {"question": "Come si dice 'مدرسة' in italiano?", "questionAr": "ما ترجمة 'مدرسة' بالإيطالية؟", "options": ["Casa", "Ufficio", "Scuola", "Ospedale"], "correct": 2}]}];const root=document.getElementById('app'); let selected=null; let answers={}; let submitted={}; let texts={}; let showText={}; let quizStarted=false; let quizSubmitted=false; let quizTimeLeft=0; let timer=null;
+function listView(){
+  root.innerHTML = '<div class="list">' + DATA.map((item,i)=>`
+    <button class="item-btn" onclick="openItem(${i})">
+      <div class="item-row"><div class="item-main"><div class="iconbox icon-red">🏆</div><div><div><span class="level ${item.level.toLowerCase()}">${item.level}</span></div><div style="font-weight:800;font-size:18px;margin-top:8px">${item.titleIt}</div><div class="small-ar" dir="rtl">${item.titleAr}</div></div></div></div>
+    </button>`).join('') + '</div>';
+}
+function openItem(i){selected=i; render();}
+function back(){selected=null; render();}
+function optionClass(done,sel,j,correct){
+  let cls='option';
+  if(done){ if(j===correct) cls+=' correct'; else if(sel===j && j!==correct) cls+=' wrong'; }
+  else if(sel===j) cls+=' selected';
+  return cls;
+}
+function wordCount(t){ return t.trim() ? t.trim().split(/\s+/).length : 0; }
+function fmt(sec){ const m=Math.floor(sec/60); const s=sec%60; return m+':'+String(s).padStart(2,'0'); }
+function render(){
+ if(selected===null){ listView(); return; }
+ const item = DATA[selected];
+
+ if(!quizStarted){
+   root.innerHTML = `<a href="#" class="back" onclick="resetQuiz();return false;">← Torna alla lista</a><div class="panel" style="max-width:560px;margin:0 auto;text-align:center"><div style="font-size:56px">🏆</div><h2 style="margin:10px 0 6px">${item.titleIt}</h2><div class="small-ar" dir="rtl">${item.titleAr}</div><p style="color:#64748b">${Math.floor(item.timeLimit/60)} minuti — ${item.questions.length} domande</p><button class="submit-btn red" onclick="startQuiz()">Inizia il quiz</button></div>`;
+   return;
+ }
+ const score = item.questions.filter((q,i)=>answers[item.id+'-'+i]===q.correct).length;
+ root.innerHTML = `<div class="actions" style="margin-bottom:18px"><h2 style="margin:0">${item.titleIt}</h2><div class="timer">⏱️ ${fmt(quizTimeLeft)}</div></div>${quizSubmitted?`<div class="result-banner"><h3 style="margin:0">${score} / ${item.questions.length}</h3><p dir="rtl">النتيجة النهائية</p><button class="submit-btn red" onclick="resetQuiz()">Torna alle verifiche</button></div>`:''}${item.questions.map((q,i)=>{ const key=item.id+'-'+i; const sel=answers[key]; return `<div class="question"><p><strong>${i+1}. ${q.question}</strong></p><p class="small-ar" dir="rtl">${q.questionAr}</p><div class="options">${q.options.map((opt,j)=>`<button class="${optionClass(quizSubmitted,sel,j,q.correct)}" onclick="if(!quizSubmitted){{answers['${item.id}-'+${i}]=${j}; render();}}">${opt}</button>`).join('')}</div>${quizSubmitted?`<div style="margin-top:10px;font-size:14px">${sel===q.correct?'Corretto — صحيح':'Sbagliato — خطأ. Risposta corretta: '+q.options[q.correct]}</div>`:''}</div>`; }).join('')}${!quizSubmitted?`<div class="actions"><button class="submit-btn red" onclick="submitQuiz()">Termina il quiz</button></div>`:''}`;
+}
+function startQuiz(){quizStarted=true; quizSubmitted=false; quizTimeLeft=DATA[selected].timeLimit; if(timer) clearInterval(timer); timer=setInterval(()=>{quizTimeLeft--; if(quizTimeLeft<=0){submitQuiz();} render();},1000); render();}
+function submitQuiz(){quizSubmitted=true; if(timer) clearInterval(timer); render();}
+function resetQuiz(){selected=null; quizStarted=false; quizSubmitted=false; quizTimeLeft=0; answers={}; if(timer) clearInterval(timer); render();}
+render();
+</script><div class="footer"><div class="container"><p><strong>Imparare la lingua italiana</strong></p><p>Piattaforma didattica per studenti dei livelli A1 e A2.</p><p dir="rtl">منصة تعليمية موجّهة للمتعلمين في مستويي A1 و A2.</p></div></div></body></html>

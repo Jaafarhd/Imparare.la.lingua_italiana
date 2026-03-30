@@ -1,0 +1,32 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Grammatica</title><link rel="stylesheet" href="style.css"></head><body><div class="nav"><div class="container nav-inner"><a class="brand" href="index.html"><div class="brand-badge">📘</div><div><div>Imparare la lingua italiana</div><div class="brand-sub" dir="rtl">موقع تعليمي لتعلّم اللغة الإيطالية</div></div></a><div class="nav-links"><a href="index.html" class="">Home</a><a href="grammar.html" class="active">Grammatica</a><a href="listening.html" class="">Ascolto</a><a href="reading.html" class="">Lettura</a><a href="writing.html" class="">Scrittura</a><a href="quizzes.html" class="">Verifiche</a></div></div></div><section class="page-head"><div class="container"><h1>Grammatica</h1><p>Regole, esempi ed esercizi per A1 e A2</p><p dir="rtl">قواعد وأمثلة وتمارين لمستويي A1 و A2</p></div></section><section class="section"><div class="container"><div id="app"></div></div></section>
+<script>
+const DATA = [{"id": 1, "titleIt": "Gli articoli determinativi", "titleAr": "أدوات التعريف", "level": "A1", "explanationIt": "Gli articoli determinativi sono: il, lo, la, i, gli, le. Si usano prima del nome per indicare qualcosa di specifico.", "explanationAr": "أدوات التعريف في الإيطالية هي: il, lo, la, i, gli, le. تُستعمل قبل الاسم للدلالة على شيء محدّد.", "exercises": [{"question": "___ libro è sul tavolo.", "questionAr": "الكتاب على الطاولة.", "options": ["Il", "La", "Lo", "Le"], "correct": 0}, {"question": "___ studentessa è brava.", "questionAr": "الطالبة مجتهدة.", "options": ["Il", "La", "Lo", "Gli"], "correct": 1}, {"question": "___ zaino è nuovo.", "questionAr": "الحقيبة جديدة.", "options": ["Il", "La", "Lo", "I"], "correct": 2}]}, {"id": 2, "titleIt": "Essere e avere al presente", "titleAr": "المضارع مع essere و avere", "level": "A1", "explanationIt": "Essere: io sono, tu sei, lui/lei è, noi siamo, voi siete, loro sono. Avere: io ho, tu hai, lui/lei ha, noi abbiamo, voi avete, loro hanno.", "explanationAr": "الفعلان essere و avere من أهم الأفعال في الإيطالية، ويُستعملان باستمرار في الجمل اليومية.", "exercises": [{"question": "Io ___ italiano.", "questionAr": "أنا إيطالي.", "options": ["sono", "ho", "sei", "hai"], "correct": 0}, {"question": "Tu ___ un fratello.", "questionAr": "لديك أخ.", "options": ["sei", "hai", "sono", "ho"], "correct": 1}, {"question": "Lei ___ una studentessa.", "questionAr": "هي طالبة.", "options": ["ha", "è", "sono", "hanno"], "correct": 1}]}];const root=document.getElementById('app'); let selected=null; let answers={}; let submitted={}; let texts={}; let showText={}; let quizStarted=false; let quizSubmitted=false; let quizTimeLeft=0; let timer=null;
+function listView(){
+  root.innerHTML = '<div class="list">' + DATA.map((item,i)=>`
+    <button class="item-btn" onclick="openItem(${i})">
+      <div class="item-row"><div class="item-main"><div class="iconbox icon-purple">📚</div><div><div><span class="level ${item.level.toLowerCase()}">${item.level}</span></div><div style="font-weight:800;font-size:18px;margin-top:8px">${item.titleIt}</div><div class="small-ar" dir="rtl">${item.titleAr}</div></div></div></div>
+    </button>`).join('') + '</div>';
+}
+function openItem(i){selected=i; render();}
+function back(){selected=null; render();}
+function optionClass(done,sel,j,correct){
+  let cls='option';
+  if(done){ if(j===correct) cls+=' correct'; else if(sel===j && j!==correct) cls+=' wrong'; }
+  else if(sel===j) cls+=' selected';
+  return cls;
+}
+function wordCount(t){ return t.trim() ? t.trim().split(/\s+/).length : 0; }
+function fmt(sec){ const m=Math.floor(sec/60); const s=sec%60; return m+':'+String(s).padStart(2,'0'); }
+function render(){
+ if(selected===null){ listView(); return; }
+ const item = DATA[selected];
+
+ const score = item.exercises.filter((q,i)=>answers[item.id+'-'+i]===q.correct).length;
+ const allAnswered = item.exercises.every((q,i)=>answers[item.id+'-'+i]!==undefined);
+ root.innerHTML = `<a href="#" class="back" onclick="back();return false;">← Torna alla lista</a><div class="panel"><span class="level ${item.level.toLowerCase()}">${item.level}</span><h2 style="margin:10px 0 6px">${item.titleIt}</h2><div class="small-ar" dir="rtl">${item.titleAr}</div><div class="explain"><p>${item.explanationIt}</p><p dir="rtl">${item.explanationAr}</p></div>${item.exercises.map((q,i)=>{ const key=item.id+'-'+i; const sel=answers[key]; const done=submitted[item.id]; return `<div class="question"><p><strong>${i+1}. ${q.question}</strong></p><p class="small-ar" dir="rtl">${q.questionAr}</p><div class="options">${q.options.map((opt,j)=>`<button class="${optionClass(done,sel,j,q.correct)}" onclick="if(!submitted[${item.id}]){{answers['${item.id}-'+${i}]=${j}; render();}}">${opt}</button>`).join('')}</div>${done?`<div style="margin-top:10px;font-size:14px">${sel===q.correct?'Corretto — صحيح':'Sbagliato — خطأ. Risposta corretta: '+q.options[q.correct]}</div>`:''}</div>`; }).join('')}<div class="actions">${submitted[item.id]?`<div class="scorebox">★ ${score} / ${item.exercises.length} <span dir="rtl">— النتيجة</span></div>`:`<button class="submit-btn green" ${!allAnswered?'disabled':''} onclick="submitted[${item.id}]=true;render();">Controlla</button>`}</div></div>`;
+}
+function startQuiz(){quizStarted=true; quizSubmitted=false; quizTimeLeft=DATA[selected].timeLimit; if(timer) clearInterval(timer); timer=setInterval(()=>{quizTimeLeft--; if(quizTimeLeft<=0){submitQuiz();} render();},1000); render();}
+function submitQuiz(){quizSubmitted=true; if(timer) clearInterval(timer); render();}
+function resetQuiz(){selected=null; quizStarted=false; quizSubmitted=false; quizTimeLeft=0; answers={}; if(timer) clearInterval(timer); render();}
+render();
+</script><div class="footer"><div class="container"><p><strong>Imparare la lingua italiana</strong></p><p>Piattaforma didattica per studenti dei livelli A1 e A2.</p><p dir="rtl">منصة تعليمية موجّهة للمتعلمين في مستويي A1 و A2.</p></div></div></body></html>
